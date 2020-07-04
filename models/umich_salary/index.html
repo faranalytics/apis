@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Oswald">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Vesper+Libre">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <script src="entity.js" type="text/javascript"></script>
+    <script src="app.js" type="text/javascript"></script>
+</head>
+
+<body>
+    <h1>Umich Salary</h1>
+    <form>
+        <input type="text" name="department" class="department" placeholder="Department" value="">
+        <input type="text" name="first-name" class="first-name" placeholder="First Name" value="A">
+        <input type="text" name="last-name" class="last-name" placeholder="Last Name" value="Smith">
+        <button type="button">Search</button>
+    </form>
+    <div class="display">
+        <table class="search-results">
+            <caption>Search Results</caption>
+            <thead>
+                <tr>
+                    <th>Department</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Salary</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <table>
+            <caption>Recent Searches</caption>
+            <thead>
+                <tr>
+                    <th>Department</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Salary</th>
+                </tr>
+            </thead>
+            <tbody id="recents"></tbody>
+        </table>
+    </div>
+    <div class="status-bar"><span class="status"></span></div>
+</body>
+</html>
