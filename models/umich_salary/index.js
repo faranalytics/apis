@@ -1,14 +1,23 @@
 "use strict"
 
+// Memory
+try {
+    global.gc();
+
+    let mu = process.memoryUsage();
+
+    Object.keys(mu).forEach((k) => { console.log(k, Math.round(mu[k] / 1000 / 1000 * 100) / 100, 'MB') });
+}
+catch (e) {
+    console.error(e);
+}
+//
+
 const _path = require('path');
 
 const _fs = require('fs');
 
-const { log } = require(_path.resolve('log'));
-
-log.debug('Loading the UMICH_SALARY_API.');
-
-const { HTTPResponse } = require(_path.resolve('exceptions'));
+//const { HTTPResponse } = require(_path.resolve('exceptions'));
 
 const _util = require('util');
 
@@ -21,7 +30,8 @@ Object.assign(_util.inspect.defaultOptions, {
     maxArrayLength: null
 });
 
-const SOURCE = require('./store.json');
+let SOURCE = JSON.parse(_fs.readFileSync(__dirname + '/data.json').toString());
+
 
 class Search {
 
@@ -83,80 +93,8 @@ let store = {
     departments: []
 }
 
-function build(store, hier, cur) {
 
-    let record = JSON.stringify(cur);
 
-    let context = store;
-
-    hier.forEach((part, idx, arr) => {
-
-        if (typeof context[part] == 'undefined') {
-
-            context[part] = {};
-        }
-
-        if (idx != arr.length - 1 && typeof context[part][cur[part]] == 'undefined') {
-
-            context[part][cur[part]] = {};
-        }
-        else if (typeof context[part][cur[part]] == 'undefined') {
-
-            context[part][cur[part]] = [];
-        }
-
-        if (idx == arr.length - 1) {
-
-            context[part][cur[part]].push(record);
-        }
-
-        context = context[part][cur[part]];
-    });
-}
-
-SOURCE.forEach((cur, idx, arr) => {
-    //  For each record in SOURCE, populate the respective
-    //  last_name and first_name keys.
-
-    if (!store.campuses.includes(cur['campus'])) {
-
-        store.campuses.push(cur['campus'])
-    }
-
-    if (!store.years.includes(cur['year'])) {
-
-        store.years.push(cur['year'])
-    }
-
-    if (!store.departments.includes(cur['department'])) {
-
-        store.departments.push(cur['department'])
-    }
-
-    build(store, ['campus', 'year', 'last_name', 'first_name', 'department'], cur);
-
-    build(store, ['campus', 'year', 'department', 'last_name', 'first_name'], cur);
-
-});
-
-store = JSON.stringify(store);
-//  For brevity and clarity, we're going to use the JSON object and its parse method in order to replace
-//  the department, last_name and first_name keys in store.
-//  This happens just once when the module loads.
-
-store = JSON.parse(store, function (key, value) {
-    //  At both the last_name key and the first_name keys, 
-    //  replace the respective object with a search method that can reference the replaced object.
-
-    if (['campus', 'year', 'department', 'last_name', 'first_name'].includes(key) && typeof value == 'object') {
-
-        let search = new Search(value);
-
-        return search.search();
-    }
-
-    return value;
-});
 
 let template = _fs.readFileSync(__dirname + '/index.html').toString();
 
@@ -233,4 +171,23 @@ module.exports = {
     }
 };
 
-log.debug('UMICH_SALARY_API Loaded.');
+console.log('UMICH_SALARY_API Loaded.');
+
+// Memory
+try {
+
+    global.gc();
+
+
+
+    setTimeout(function () {
+        let mu = process.memoryUsage();
+        Object.keys(mu).forEach((k) => { console.log(k, Math.round(mu[k] / 1000 / 1000 * 100) / 100, 'MB') });
+
+    }, 10000)
+}
+catch (e) {
+    console.error(e);
+}
+
+

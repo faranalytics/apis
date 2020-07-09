@@ -197,15 +197,15 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
                         urls = Object.values(response);
                     }
 
-                    if (dept !== '') {
-                        urls = urls.filter(url => url.match(/\/api\/appt_dept/));
-                    }
-                    else if (ln !== '') {
-                        urls = urls.filter(url => url.match(/\/api\/last_name/));
-                    }
-                    else {
-                        urls = urls.filter(url => url.match(/\/api\/first_name/));
-                    }
+                    // if (dept !== '') {
+                    //     urls = urls.filter(url => url.match(/\/api\/appt_dept/));
+                    // }
+                    // else if (ln !== '') {
+                    //     urls = urls.filter(url => url.match(/\/api\/last_name/));
+                    // }
+                    // else {
+                    //     urls = urls.filter(url => url.match(/\/api\/first_name/));
+                    // }
 
                     urls = urls.filter(url => url.match(/\/api\/campus/));
 
