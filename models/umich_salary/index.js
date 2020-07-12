@@ -30,71 +30,56 @@ Object.assign(_util.inspect.defaultOptions, {
     maxArrayLength: null
 });
 
-let SOURCE = JSON.parse(_fs.readFileSync(__dirname + '/data.json').toString());
+//let SOURCE = JSON.parse(_fs.readFileSync(__dirname + '/data.json').toString());
 
+const SOURCE = JSON.parse(_fs.readFileSync(__dirname + '/store.json').toString());
 
-class Search {
+function buildStore(parts, store, SOURCE) {
 
-    constructor(collection) {
+    return SOURCE.reduce((acc, cur, idx, arr) => {
 
-        this.collection = collection;
-    }
-
-    search() {
-
-        return (query, ctx) => {
-
-            if (ctx.paths != 0) {
-                return this.collection;
-                //  The client is trying to access a specific resource and not a search.
-                //  Return the entire collection, so path resolution can continue into the *object*.
+        let ctx = acc;
+    
+        let rparts = [...parts].reverse()
+    
+        while (rparts.length) {
+    
+            let part = rparts.pop();
+    
+            //
+            if (part != 'records' && typeof ctx[part] == 'undefined') {
+                ctx[part] = {};
             }
-
-            query = query.toLowerCase();
-
-            query = query.replace(/[^a-z -]/, '');
-
-            let queries = query.split('');
-
-            query = '^' + queries.join('.{0,2}?') + '.{0,10}?';
-
-            let rgx = new RegExp(query, 'i');
-
-            let response = {};
-            //  The response object will contain the filtered keys and their respective values.
-
-            Object.keys(this.collection).forEach((cur, idx, arr) => {
-
-                if (rgx.test(cur.toLowerCase())) {
-
-                    response[cur] = this.collection[cur];
-                }
-            });
-
-            if (!['campus', 'year', 'department'].includes(ctx.path) && Object.keys(response).length > 200) {
-                ctx.res.statusCode = 403;
-                return response;
+            else if (part == 'records' && typeof ctx[part] == 'undefined') {
+                ctx[part] = [];
             }
-
-            if (Object.keys(response).length === 0) {
-
-                return undefined;
+            //  This adds the appropriate object or array where none exists.
+    
+            if (part != 'records' && typeof ctx[part][cur[part]] == 'undefined') {
+    
+                ctx[part][cur[part]] = {};
             }
-
-            return response;
+            else if (part == 'records') {
+    
+                ctx[part].push(cur);
+            }
+    
+            if (part !== 'records') {
+    
+                ctx = ctx[part][cur[part]];
+            }
         }
-    }
+    
+        return acc;
+
+    }, store);
 }
 
+let store = buildStore(['campus', 'year', 'records'], {}, SOURCE);
 
-let store = {
-    campuses: [],
-    years: [],
-    departments: []
-}
+store = buildStore(['campus', 'year', 'department', 'first_name', 'last_name', 'records'], store, SOURCE);
 
-
-
+//_fs.writeFileSync('test.json', JSON.stringify(store));
 
 let template = _fs.readFileSync(__dirname + '/index.html').toString();
 
