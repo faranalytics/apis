@@ -1,0 +1,155 @@
+* {
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-spacing: 0;
+    /* box-sizing: border-box; */
+    box-sizing: content-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    font-family: "Open Sans", "Lucida Sans Unicode", "Lucida Grande", sansSerif;
+}
+
+.box {
+    /* overflow: hidden; */
+    word-wrap: break-word;
+}
+
+.box.top {
+    position:relative;
+    height: 3.2em;
+    padding: 0 1em;
+    background:#00274F;
+    font-family: Oswald, sans-serif;
+}
+
+
+.box.left {
+    position: absolute;
+    font-size: inherit;
+    top: 3.2em;
+    bottom: 0em;
+    left: 0em;
+    width: 15em;
+    padding: 1em;
+    background:#efefef;
+    color:#000;
+}
+
+.box.center {
+    position: absolute;
+    left: 17em;
+    top: 3.2em;
+    bottom: 0em;
+    font-size: inherit;
+    width: 40em;
+    padding: 1em;
+    background:#dfdfdf;
+}
+
+.box.right {
+    position: absolute;
+    right: 0em;
+    /* left: 59em; */
+    left: 80em;
+    top: 3.2em;
+    bottom: 0em;
+    font-size: inherit;
+    background: #efefef;
+}
+
+h1 {
+    font-size: 2em;
+    line-height: 1.6;
+    background: #00274F;
+    color: #fff;   
+}
+
+.list-heading {
+    border-bottom: 1px solid;
+    border-color: #3a3a3a;
+    color:black;
+    font-weight: bold;
+}
+
+ul.flavor li::before {
+    font-family: Oswald, sans-serif;
+    font-weight: bold;
+    content: "</>";
+    font-size: 1em;
+    vertical-align: middle;
+    margin: 0 .5em 0 0;
+  }
+
+ul.flavor {
+    text-overflow: ellipsis;
+    list-style-type: none;
+    list-style-position: inside;
+    padding: 1em 0 0  0;
+    margin: 0 0 0 1em;
+}
+
+ul.flavor li {
+    line-height: 2;
+    color: #111;
+}
+
+ul.flavor li span {
+    position:absolute;
+    right: 1em;
+    font-weight: bold;
+}
+
+ul.flavor li:hover {
+    background-color: #ddd;
+    color: #000;
+    cursor: pointer;
+  }
+
+form.regex-input {
+    position: absolute;
+    top:0;
+    left: 0;
+    right: 0;
+    padding:inherit;
+    font-size: inherit;
+}
+
+form input.regex-input {
+    position:relative;
+    font-size: inherit;
+    width: 100%;
+    line-height: 1.6;
+    border-radius: 1px;
+    padding: 0 1em;
+    border: .1em solid rgb(205, 209, 212);
+    box-sizing: border-box;
+} 
+
+form.text-input {
+    position: absolute;
+    font-size: inherit;
+    top: 2.7em;
+    bottom:0;
+    left: 0;
+    right: 0;
+    padding: inherit;
+    font-size: 1em;
+} 
+
+form textarea.text-input {
+    font-size: inherit;
+    width: 100%;
+    height: 100%;
+    line-height: 1.6;
+    border-radius: 1px;
+    padding: 0 1em;
+    border: .1em solid rgb(205, 209, 212);
+    box-sizing: border-box;
+}

@@ -60,6 +60,7 @@ module.exports = class HttpController {
   };
 
   async httpServerRequest(req, res) {
+    //console.log('httpServerRequest');
 
     try {
 
@@ -116,8 +117,6 @@ module.exports = class HttpController {
 
     }
     catch (e) {
-
-      console.log(e);
 
       if (e instanceof HTTPResponse) {
 
@@ -191,6 +190,10 @@ module.exports = class HttpController {
     let paths = [mediaType.mediaRange.subtype, mediaType.mediaRange.type].map((x) => x.toLowerCase());
 
     rep = (async () => ({ rep: await rep, mediaType: mediaType }))();
+    //  This is a special usage of the rep variable of the Context class constructor.
+    //  Normally, the rep is just the object being passed to a function.  
+    //  For requests, the representation is both the data and the mediaType.
+    //  Hence, the Promise created by the anonymous async function will resolve once the rep gets resolved.
 
     let ctx = new Context('Request', req, res, model, model, paths, rep, url, uri, this);
 
@@ -221,6 +224,8 @@ module.exports = class HttpController {
     }
 
     let paths = path === '' ? [''] : path.split('/').reverse();
+    //  Reverse once instead of shifting multiple times.  
+    //  This allows for the path segments to be popped from the array.
 
     let model = this.selectModel(this.router, url, req.method);
 
@@ -229,7 +234,7 @@ module.exports = class HttpController {
     rep = await ctx.resolve();
 
     if (typeof rep == 'undefined') {
-
+      
       throw new HTTPResponse(404);
     }
 
@@ -264,7 +269,7 @@ module.exports = class HttpController {
 
       return media;
     })(media);
-    //  The mediaType changes on each iteration, so reference is needed outside the Promise.
+    //  The mediaType changes on each iteration, so a reference is needed outside the Promise - see below.
 
     for (mediaType of mediaTypes) {
 
@@ -502,7 +507,6 @@ class Context {
     //   (this.path ? '; Current path: ' + this.path + '; Paths: ' + this.paths : '; Paths: ' + JSON.stringify(this.paths))
     // );
 
-
     switch (this.route instanceof Buffer ? 'buffer' : typeof this.route) {
 
       case 'undefined':
@@ -558,7 +562,7 @@ class Context {
           this.path = path;
 
           this.context = this.route;
-          //  Set the context for a subsequent function call.
+          //  Set the context for a subsequent call to this.resolve.
 
           this.route = this.route[path];
 
@@ -580,6 +584,11 @@ class Context {
         this.route = rs;
 
         return await tryCallAsync(this.resolve);
+        break;
+
+      default:
+        throw new HTTPResponse(505);
+        break;
     }
   }
 }
