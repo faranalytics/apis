@@ -132,6 +132,11 @@ form input.regex-input {
     box-sizing: border-box;
 } 
 
+form input.regex-input:focus {
+    outline: none !important;
+    border: .2em solid rgb(205, 209, 212);
+}
+
 form.text-input {
     position: absolute;
     font-size: inherit;
@@ -143,13 +148,21 @@ form.text-input {
     font-size: 1em;
 } 
 
-form textarea.text-input {
+form div.text-input {
     font-size: inherit;
     width: 100%;
     height: 100%;
+    font-size: .75em;
     line-height: 1.6;
     border-radius: 1px;
-    padding: 0 1em;
-    border: .1em solid rgb(205, 209, 212);
+    padding: 1.33em 1.33em;
+    border: .133em solid rgb(205, 209, 212);
     box-sizing: border-box;
+    background: #fff;
+    overflow:auto;
+}
+
+form div.text-input:focus {
+    outline: none !important;
+    border: .266em solid rgb(205, 209, 212);
 }

@@ -17,27 +17,29 @@ module.exports = {
         }
     },
 
-    // 'application': {
+    'application': {
 
-    //     'json': function (rep, mediaRange, ctx) {
+        'json': function ({rep, mediaType}, ctx) {
 
-    //         return JSON.parse(rep.toString('utf8'));
-    //     },
+            console.log(JSON.parse(rep.toString('utf8')));
 
-    //     'x-www-form-urlencoded': async function (rep, mediaType, ctx) {
+            return JSON.parse(rep.toString('utf8'));
+        },
 
-    //         let searchParams = _querystring.parse(ctx.url.searchParams.toString(), "&", "=", { maxKeys: 0 });
+        // 'x-www-form-urlencoded': async function (rep, mediaType, ctx) {
 
-    //         switch (mediaType.mediaRange.parameter.charset) {
+        //     let searchParams = _querystring.parse(ctx.url.searchParams.toString(), "&", "=", { maxKeys: 0 });
 
-    //             case 'utf-8':
-    //             default:
-    //                 rep = _querystring.parse(rep.toString('utf8'));
+        //     switch (mediaType.mediaRange.parameter.charset) {
 
-    //                 return Object.assign(rep, searchParams);
-    //         }
-    //     }
-    // },
+        //         case 'utf-8':
+        //         default:
+        //             rep = _querystring.parse(rep.toString('utf8'));
+
+        //             return Object.assign(rep, searchParams);
+        //     }
+        // }
+    },
 
     // 'multipart': {
 

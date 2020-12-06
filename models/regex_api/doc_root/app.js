@@ -27,14 +27,13 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
         constructor(name) {
             super(name);
 
-            this.inputElement = document.querySelector('form.text-input');
+            this.inputElement = document.querySelector('form div.text-input');
 
             this.inputElement.addEventListener('input', this.input.bind(this));
         }
 
         input(e) {
-
-            super.notify('stateful', 'state-change', { textInput: e.target.value });
+            super.notify('stateful', 'state-change', { textInput: e.data });
         }
     }
 
@@ -104,13 +103,17 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
                     this.xhr.abort()
                 }
 
-                let response = await this.xhRequest(this.state);
+                let r = await this.xhRequest('regex-api/' + this.state.lang, 
+                {
+                    textInput: this.state.textInput,
+                    regexInput: this.state.regexInput
+                });
 
-                console.log(response);
+                console.log(r);
             }
         }
 
-        async xhRequest(state) {
+        async xhRequest(url, object) {
 
             return new Promise((r, j) => {
 
@@ -118,16 +121,16 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
 
                 this.xhr = xhr;
 
-                xhr.open('POST', 'api');
+                xhr.open('POST', url);
                 xhr.setRequestHeader('Content-Type', 'application/json');
                 xhr.setRequestHeader('Accept', 'application/json');
-                xhr.addEventListener('load', (event) => {
-                    r(event);
+                xhr.addEventListener('load', (e) => {
+                    r(e.currentTarget);
                 });
-                xhr.addEventListener('error', (event) => {
-                    console.log(event);
+                xhr.addEventListener('error', (e) => {
+                    console.log(e);
                 });
-                xhr.send(state);
+                xhr.send(JSON.stringify(object));
             });
         }
     }

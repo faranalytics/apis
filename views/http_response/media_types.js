@@ -60,27 +60,16 @@ module.exports = {
 
         'json': function ({ rep, mediaType }, ctx) {
 
-            let idx = 0;
             return Buffer.from(JSON.stringify(rep, function (key, value) {
                 
                 switch (typeof value) {
                     case 'object':
                     case 'string':
                     case 'number':
-                        if (idx !== 0) { //  Do not convert the root '' object into a URL.
-
-                            return ctx.url.protocol + '//' + ctx.url.host + ctx.url.pathname.replace(/\/$/, '') + '/' + encodeURI(key);
-                        }
-                        else {
-
-                            idx = idx + 1;
-                            return value;
-                        }
+                        return value;
                     case 'function':
-                        idx = idx + 1;
                         return ctx.url.protocol + '//' + ctx.url.host + ctx.url.pathname.replace(/\/$/, '') + '/' + encodeURI(key) + '?';
                     default:
-                        idx = idx + 1;
                         return value;
                 }
             }), 'utf8');
