@@ -33,7 +33,15 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
         }
 
         input(e) {
-            super.notify('stateful', 'state-change', { textInput: e.data });
+
+            //  Strip HTML.
+
+            super.notify('stateful', 'state-change', { textInput:  this.inputElement.innerHTML});
+        }
+
+        match(match) {
+
+            console.log(match);
         }
     }
 
@@ -96,20 +104,21 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
             this.state = { ...this.state, ...message };
 
             if (Object.keys(this.state).every(x => ![undefined, ""].includes(this.state[x]))) {
-
-                console.log(this.state);
                 
                 if (this.xhr) {
                     this.xhr.abort()
                 }
 
-                let r = await this.xhRequest('regex-api/' + this.state.lang, 
-                {
+                let request = {
                     textInput: this.state.textInput,
                     regexInput: this.state.regexInput
-                });
+                }
 
-                console.log(r);
+                console.log(request);
+
+                let r = await this.xhRequest('regex-api/' + this.state.lang, request);
+
+                super.notify('text-input', 'match', r);
             }
         }
 
@@ -128,7 +137,7 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
                     r(e.currentTarget);
                 });
                 xhr.addEventListener('error', (e) => {
-                    console.log(e);
+                    console.error(e);
                 });
                 xhr.send(JSON.stringify(object));
             });
