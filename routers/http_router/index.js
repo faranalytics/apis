@@ -15,18 +15,21 @@ fileWatcher[Symbol('HTTPhandler')] = function (rep, ctx) {
   }
 }
 
+const routerModel = {
+
+  'GET': fileWatcher,
+
+  'POST': {
+
+    'api': 'TEST',
+
+    'regex-api': new RegexAPI()
+  }
+}
 
 module.exports = {
   
-  '^localhost$': {
-
-    'GET': fileWatcher,
-
-    'POST': {
-
-      'api': 'TEST',
-
-      'regex-api': new RegexAPI()
-    }
-  }
+  '^localhost$': routerModel,
+  
+  '^faranalytics.net$': routerModel
 }
