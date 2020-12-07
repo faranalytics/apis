@@ -184,6 +184,6 @@ form.text-input textarea {
 }
 
 form.text-input .render {
-    color: blue;
+    color: black;
     overflow-y: auto;
 }

@@ -27,21 +27,35 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
         constructor(name) {
             super(name);
 
-            //this.hElement = document.querySelector('form div.text-input-highlight');
-            this.inputElement = document.querySelector('form div.text-input');
+            this.render = document.querySelector('form.text-input .render');
 
-            this.inputElement.addEventListener('input', this.input.bind(this));
+            this.textarea = document.querySelector('form.text-input textarea');
+
+            this.textarea.addEventListener('input', this.update.bind(this));
 
             super.listen('match', this.match.bind(this));
+
+            this.textarea.addEventListener('scroll', (e) => {
+
+                this.render.scrollTo(0, e.target.scrollTop)
+            });
         }
 
-        input(e) {
+        update(e) {
 
-            //  Strip HTML.
-            console.log(this.inputElement.innerHTML)
-            let test = this.inputElement.innerHTML.replace(/<br\s*>/gi, '\n').replace(/<[^>]+>/gi, '')
-            console.log(test);
-            //super.notify('stateful', 'state-change', { textInput: this.inputElement.innerText});
+            this.render.innerHTML = e.target.value.replace(/\n$/gi, '<br><br>').replace(/\n/gi, '<span><br></span>').replace(/ /gi, '<span> </span>')
+
+            this.render.scrollTo(0, e.target.scrollTop);
+
+            super.notify('stateful', 'state-change', { textInput: this.textarea.value });
+        }
+
+        render() {
+
+        }
+
+        postRender() {
+
         }
 
         match(results) {
@@ -63,7 +77,7 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
 
             indices[0] === 0 ? null : indices.unshift(0);
 
-            indices[indices.length - 1] === this.inputElement.innerText.length ? null : indices.push(this.inputElement.innerText.length);
+            indices[indices.length - 1] === this.textarea.value.length ? null : indices.push(this.textarea.value.length);
 
             let matches = results.map(x => x['match']);
 
@@ -71,7 +85,7 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
 
                 if (idx !== indices.length - 1) {
 
-                    acc.push(this.inputElement.innerText.slice(cur, arr[idx + 1]))
+                    acc.push(this.textarea.value.slice(cur, arr[idx + 1]))
                 }
 
                 return acc;
@@ -80,20 +94,17 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
             slices = slices.map(x => {
 
                 if (matches.includes(x)) {
-                    return '<span style="background-color:blue">' + x + '</span>'
+                    return '<span style="background-color:rgba(44, 130, 201, .25)">' + x + '</span>'
                 }
                 else {
                     return x;
                 }
             })
-            
-            // let render = slices.join('')
-            // console.log('render1: ', render);
-            // render = render.replace(/\n$/, '').replace(/\n/g, '<br>');
-            // console.log('render2: ', render);
-            // this.hElement.innerHTML = render;
 
-            //this.inputElement.innerHTML = render;
+            let render = slices.join('').replace(/\n$/gi, '<br><br>').replace(/\n/gi, '<span><br></span>');//.replace(/ /gi, '<span> </span>')
+            
+            this.render.innerHTML = render;
+    
         }
     }
 
@@ -152,7 +163,7 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
         }
 
         async stateChange(message = {}) {
-
+            
             try {
 
                 this.state = { ...this.state, ...message };
@@ -168,11 +179,7 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
                         regexInput: this.state.regexInput
                     }
 
-                    // console.log('request: ', request);
-
                     let response = await this.xhRequest('regex-api/' + this.state.lang, request);
-
-                    // console.log('response: ', response);
 
                     super.notify('text-input', 'match', JSON.parse(response));
                 }
