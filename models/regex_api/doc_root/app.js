@@ -27,21 +27,73 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
         constructor(name) {
             super(name);
 
+            //this.hElement = document.querySelector('form div.text-input-highlight');
             this.inputElement = document.querySelector('form div.text-input');
 
             this.inputElement.addEventListener('input', this.input.bind(this));
+
+            super.listen('match', this.match.bind(this));
         }
 
         input(e) {
 
             //  Strip HTML.
-
-            super.notify('stateful', 'state-change', { textInput:  this.inputElement.innerHTML});
+            console.log(this.inputElement.innerHTML)
+            let test = this.inputElement.innerHTML.replace(/<br\s*>/gi, '\n').replace(/<[^>]+>/gi, '')
+            console.log(test);
+            //super.notify('stateful', 'state-change', { textInput: this.inputElement.innerText});
         }
 
-        match(match) {
+        match(results) {
+            //  results must be an Array that contains index-match objects.
 
-            console.log(match);
+            let indices = results.reduce((acc, cur) => {
+
+                let index = parseInt(cur['index']);
+
+                if (index !== null) {
+
+                    acc.push(index);
+                    acc.push(index + cur['match'].length);
+                }
+
+                return acc;
+
+            }, [])
+
+            indices[0] === 0 ? null : indices.unshift(0);
+
+            indices[indices.length - 1] === this.inputElement.innerText.length ? null : indices.push(this.inputElement.innerText.length);
+
+            let matches = results.map(x => x['match']);
+
+            let slices = indices.reduce((acc, cur, idx, arr) => {
+
+                if (idx !== indices.length - 1) {
+
+                    acc.push(this.inputElement.innerText.slice(cur, arr[idx + 1]))
+                }
+
+                return acc;
+            }, []);
+
+            slices = slices.map(x => {
+
+                if (matches.includes(x)) {
+                    return '<span style="background-color:blue">' + x + '</span>'
+                }
+                else {
+                    return x;
+                }
+            })
+            
+            // let render = slices.join('')
+            // console.log('render1: ', render);
+            // render = render.replace(/\n$/, '').replace(/\n/g, '<br>');
+            // console.log('render2: ', render);
+            // this.hElement.innerHTML = render;
+
+            //this.inputElement.innerHTML = render;
         }
     }
 
@@ -101,24 +153,32 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
 
         async stateChange(message = {}) {
 
-            this.state = { ...this.state, ...message };
+            try {
 
-            if (Object.keys(this.state).every(x => ![undefined, ""].includes(this.state[x]))) {
-                
-                if (this.xhr) {
-                    this.xhr.abort()
+                this.state = { ...this.state, ...message };
+
+                if (Object.keys(this.state).every(x => ![undefined, ""].includes(this.state[x]))) {
+
+                    if (this.xhr) {
+                        this.xhr.abort()
+                    }
+
+                    let request = {
+                        textInput: this.state.textInput,
+                        regexInput: this.state.regexInput
+                    }
+
+                    // console.log('request: ', request);
+
+                    let response = await this.xhRequest('regex-api/' + this.state.lang, request);
+
+                    // console.log('response: ', response);
+
+                    super.notify('text-input', 'match', JSON.parse(response));
                 }
-
-                let request = {
-                    textInput: this.state.textInput,
-                    regexInput: this.state.regexInput
-                }
-
-                console.log(request);
-
-                let r = await this.xhRequest('regex-api/' + this.state.lang, request);
-
-                super.notify('text-input', 'match', r);
+            }
+            catch (e) {
+                console.error(e);
             }
         }
 
@@ -134,10 +194,17 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
                 xhr.setRequestHeader('Content-Type', 'application/json');
                 xhr.setRequestHeader('Accept', 'application/json');
                 xhr.addEventListener('load', (e) => {
-                    r(e.currentTarget);
+
+                    if (e.currentTarget.status === 200) {
+
+                        r(e.currentTarget.response);
+                    }
+                    else {
+                        j(e);
+                    }
                 });
                 xhr.addEventListener('error', (e) => {
-                    console.error(e);
+                    j(e);
                 });
                 xhr.send(JSON.stringify(object));
             });

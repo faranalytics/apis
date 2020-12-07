@@ -117,12 +117,12 @@ form.regex-input {
     top:0;
     left: 0;
     right: 0;
-    padding:inherit;
+    padding: inherit;
     font-size: inherit;
 }
 
 form input.regex-input {
-    position:relative;
+    position: relative;
     font-size: inherit;
     width: 100%;
     line-height: 1.6;
@@ -145,24 +145,45 @@ form.text-input {
     left: 0;
     right: 0;
     padding: inherit;
-    font-size: 1em;
+    border:0;
 } 
 
-form div.text-input {
-    font-size: inherit;
-    width: 100%;
-    height: 100%;
-    font-size: .75em;
-    line-height: 1.6;
-    border-radius: 1px;
-    padding: 1.33em 1.33em;
-    border: .133em solid rgb(205, 209, 212);
-    box-sizing: border-box;
-    background: #fff;
-    overflow:auto;
+form.text-input .render-wrapper,  form.text-input .textarea-wrapper {
+    position: absolute;
+    top: 1em;
+    bottom: 1em;
+    left: 1em;
+    right: 1em;
 }
 
-form div.text-input:focus {
+form.text-input .render-wrapper {
+    padding:1em;
+    background: white;
+    font-size: 1em;
+}
+
+form.text-input .textarea-wrapper {
+    padding:1em;
+    background:transparent;
+}
+
+form.text-input textarea, form.text-input .render {
+    width: 100%;
+    height: 100%;
+    font-size: 1em;
+    font-family: "Open Sans", "Lucida Sans Unicode", "Lucida Grande", sansSerif;
+    white-space: pre-wrap;
+}
+
+form.text-input textarea {
+    resize: none;
     outline: none !important;
-    border: .266em solid rgb(205, 209, 212);
+    color:transparent;
+    background-color: transparent;
+    caret-color: black;
+}
+
+form.text-input .render {
+    color: blue;
+    overflow-y: auto;
 }

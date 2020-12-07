@@ -14,7 +14,6 @@ Object.assign(_util.inspect.defaultOptions, {
 const _path = require('path');
 
 const _fs = require('fs');
-const { match } = require('assert');
 
 class RegexAPI {
 
@@ -25,16 +24,25 @@ class RegexAPI {
 
     node({ regexInput, textInput }, ctx) {
 
-        let matches = [...textInput.matchAll(new RegExp(regexInput, 'g'))].map(
-            x => ({ match: x[0], index: x.index })
-        );
+        try {
 
-        return matches;
+            let regex = new RegExp(regexInput, 'g');
+
+            let matches = [...textInput.matchAll(regex)].map(
+
+                x => ({ match: x[0], index: x.index })
+            );
+
+            return matches;
+        }
+        catch {
+
+        }
     }
 
     python({ regexInput, textInput }, ctx) {
 
-        return "PYTHON TEST";
+        return ["PYTHON TEST"];
     }
 }
 
