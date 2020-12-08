@@ -157,7 +157,7 @@ module.exports = class HttpController {
         res.end(HTTP_RESPONSE['500']);
 
         //log.debug('URI: ' + uri + '; Stack trace: ' + e.stack);
-        console.log('URI: ' + uri + '; Stack trace: ' + e.stack);
+        console.error('URI: ' + uri + '; Stack trace: ' + e.stack);
       }
     }
   };

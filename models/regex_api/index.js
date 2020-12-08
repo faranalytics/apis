@@ -28,22 +28,25 @@ class RegexAPI {
         }
     }
 
-    node({ regexInput, textInput }, ctx) {
+    async node(request, ctx) {
 
-        try {
+        //{ regexInput, textInput }
+        // try {
 
-            let regex = new RegExp(regexInput, 'g');
+        //     let regex = new RegExp(regexInput, 'g');
 
-            let matches = [...textInput.matchAll(regex)].map(
+        //     let matches = [...textInput.matchAll(regex)].map(
 
-                x => ({ match: x[0], index: x.index })
-            );
+        //         x => ({ match: x[0], index: x.index })
+        //     );
 
-            return matches;
-        }
-        catch {
+        //     return matches;
+        // }
+        // catch {
 
-        }
+        // }
+
+        return await this.python(request);
     }
 
     async python(request, ctx) {
@@ -59,7 +62,8 @@ class RegexAPI {
                     exec('python3 index.py',
                         {
                             'env': this.env,
-                            'cwd': __dirname
+                            'cwd': __dirname,
+                            'timeout': 2000
                         },
                         (error, stdout, stderr) => {
 
