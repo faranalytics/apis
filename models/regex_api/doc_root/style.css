@@ -179,9 +179,13 @@ form.text-input textarea, form.text-input .render {
 form.text-input textarea {
     resize: none;
     outline: none !important;
-    color:transparent;
+    color:black;
     background-color: transparent;
     caret-color: black;
+}
+
+form.text-input textarea:focus {
+    color:transparent;
 }
 
 form.text-input .render {
