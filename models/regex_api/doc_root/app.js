@@ -178,7 +178,7 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
                         regexInput: this.state.regexInput
                     }
 
-                    let response = await this.xhRequest('regex-api/' + this.state.lang, request);
+                    let response = await this.xhRequest('/regex-api/' + this.state.lang, request);
 
                     console.log('response: ', response);
 

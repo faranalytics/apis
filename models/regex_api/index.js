@@ -24,8 +24,7 @@ class RegexAPI {
         this.api = this.node.bind(this);
 
         this.env = {
-            //'PATH': 'C:\\Users\\null\\AppData\\Local\\Programs\\Python\\Python38\\'
-            'PATH': '/usr/bin'
+            'PATH': process.env.PATH
         }
     }
 

@@ -8,16 +8,24 @@ const FileWatcher = require(_path.resolve('models/file_watcher'));
 
 let fileWatcher = new FileWatcher('models/regex_api/doc_root');
 
-fileWatcher[Symbol('HTTPhandler')] = function (rep, ctx) {
-
-  if (ctx.url.pathname.match(/^\/$/)) {
-    ctx.paths = ['index.html'];
-  }
-}
 
 const routerModel = {
 
-  'GET': fileWatcher,
+  'GET': {
+
+    [Symbol('HTTPhandler')]: function (rep, ctx) {
+      console.log('HTTPhandler')
+      console.log(ctx.paths)
+
+      if (ctx.url.pathname.match(/^.*\/$/)) {
+        console.log(ctx.paths)
+        ctx.paths.shift();
+        ctx.paths.unshift('index.html');
+      }
+    },
+
+    'regex-api': fileWatcher
+  },
 
   'POST': {
 
@@ -28,8 +36,8 @@ const routerModel = {
 }
 
 module.exports = {
-  
+
   '^localhost$': routerModel,
-  
+
   '^faranalytics.net$': routerModel
 }
