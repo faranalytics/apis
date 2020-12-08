@@ -25,7 +25,7 @@ class RegexAPI {
 
         this.env = {
             //'PATH': 'C:\\Users\\null\\AppData\\Local\\Programs\\Python\\Python38\\'
-            'PATH': '/usr/bin/python3'
+            'PATH': '/usr/bin'
         }
     }
 
