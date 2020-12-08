@@ -101,9 +101,9 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
             })
 
             let render = slices.join('').replace(/\n$/gi, '<br><br>').replace(/\n/gi, '<span><br></span>');//.replace(/ /gi, '<span> </span>')
-            
+
             this.render.innerHTML = render;
-    
+
         }
     }
 
@@ -156,22 +156,24 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
             this.xhRequest.bind(this);
             super.listen('state-change', this.stateChange.bind(this));
 
+            //super.listen('abort', this.abort.bind(this));
+
             this.state = { regexInput: undefined, textInput: undefined, lang: undefined }
 
             this.xhr;
         }
 
         async stateChange(message = {}) {
-            
+
             try {
+
+                if (this.xhr) {
+                    this.xhr.abort()
+                }
 
                 this.state = { ...this.state, ...message };
 
                 if (Object.keys(this.state).every(x => ![undefined, ""].includes(this.state[x]))) {
-
-                    if (this.xhr) {
-                        this.xhr.abort()
-                    }
 
                     let request = {
                         textInput: this.state.textInput,
@@ -179,8 +181,6 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
                     }
 
                     let response = await this.xhRequest('/regex-api/' + this.state.lang, request);
-
-                    console.log('response: ', response);
 
                     super.notify('text-input', 'match', JSON.parse(response));
                 }

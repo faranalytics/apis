@@ -130,6 +130,7 @@ form input.regex-input {
     padding: 0 1em;
     border: .1em solid rgb(205, 209, 212);
     box-sizing: border-box;
+    font-family: "Open Sans", "Lucida Sans Unicode", "Lucida Grande", sansSerif;
 } 
 
 form input.regex-input:focus {

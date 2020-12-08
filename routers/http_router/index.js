@@ -14,22 +14,23 @@ const routerModel = {
   'GET': {
 
     [Symbol('HTTPhandler')]: function (rep, ctx) {
-      console.log('HTTPhandler')
-      console.log(ctx.paths)
 
       if (ctx.url.pathname.match(/^.*\/$/)) {
-        console.log(ctx.paths)
         ctx.paths.shift();
         ctx.paths.unshift('index.html');
       }
     },
 
-    'regex-api': fileWatcher
+    'regex-api': fileWatcher,
+
+    '': 'EMPTY STRING',
+    
+    'index.html': 'index.html'
   },
 
   'POST': {
 
-    'api': 'TEST',
+    'api': 'TEST_API',
 
     'regex-api': new RegexAPI()
   }
