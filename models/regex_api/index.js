@@ -15,11 +15,17 @@ const _path = require('path');
 
 const _fs = require('fs');
 
+const { exec, spawn } = require('child_process');
+
 class RegexAPI {
 
     constructor() {
 
         this.api = this.node.bind(this);
+
+        this.env = {
+            'PATH': 'C:\\Users\\null\\AppData\\Local\\Programs\\Python\\Python38\\'
+        }
     }
 
     node({ regexInput, textInput }, ctx) {
@@ -40,15 +46,62 @@ class RegexAPI {
         }
     }
 
-    python({ regexInput, textInput }, ctx) {
+    async python(request, ctx) {
 
-        return ["PYTHON TEST"];
+        try {
+
+            let results = await new Promise((r, j) => {
+
+                try {
+
+                    _fs.writeFileSync(__dirname + '/input.json', JSON.stringify(request));
+
+                    exec('python.exe index.py',
+                        {
+                            'env': this.env,
+                            'cwd': __dirname
+                        },
+                        (error, stdout, stderr) => {
+
+                            // console.error(error);
+                            // console.error(stderr);
+                            // console.error(stdout);
+
+                            try {
+
+                                if (error) {
+
+                                    throw new Error(error);
+                                }
+
+                                let results = JSON.parse(_fs.readFileSync(__dirname + '/output.json'));
+
+                                r(results);
+                            }
+                            catch (e) {
+
+                                j(e)
+                            }
+                        });
+                }
+                catch (e) {
+
+                    j(e)
+                }
+            });
+
+            return results;
+        }
+        catch (e) {
+
+            console.error(e);
+        }
     }
 }
 
 module.exports = RegexAPI;
 
-// {regexInput: "a", textInput: "b", lang: "python"}
+//{regexInput: "a", textInput: "b", lang: "python"}
 // console.log(_util.inspect(new RegexAPI));
 // console.log((new RegexAPI).api)
 
@@ -59,3 +112,9 @@ module.exports = RegexAPI;
 //     regexAPI.node({regexInput: "(?:is|a)", textInput: "This is a string.", lang: "python"}))
 
 // );
+
+// (async function(){
+//     console.log(await regexAPI.python({regexInput: "(?:a|is)", textInput: "This is a string."}))
+// }())
+
+//console.log(JSON.parse("{\"regexInput\": \"(?:is|a)\", \"textInput\": \"This is a string.\"}"))

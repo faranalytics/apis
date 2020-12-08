@@ -31,31 +31,30 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
 
             this.textarea = document.querySelector('form.text-input textarea');
 
-            this.textarea.addEventListener('input', this.update.bind(this));
-
-            super.listen('match', this.match.bind(this));
+            this.textarea.addEventListener('input', this.input.bind(this));
 
             this.textarea.addEventListener('scroll', (e) => {
 
                 this.render.scrollTo(0, e.target.scrollTop)
             });
+
+            super.listen('match', this.match.bind(this));
+
+            super.listen('update', this.update.bind(this))
         }
 
-        update(e) {
+        input(e) {
 
-            this.render.innerHTML = e.target.value.replace(/\n$/gi, '<br><br>').replace(/\n/gi, '<span><br></span>').replace(/ /gi, '<span> </span>')
-
-            this.render.scrollTo(0, e.target.scrollTop);
+            this.update();
 
             super.notify('stateful', 'state-change', { textInput: this.textarea.value });
         }
 
-        render() {
+        update(e) {
 
-        }
+            this.render.innerHTML = this.textarea.value.replace(/\n$/gi, '<br><br>').replace(/\n/gi, '<span><br></span>').replace(/ /gi, '<span> </span>')
 
-        postRender() {
-
+            this.render.scrollTo(0, this.textarea.scrollTop);
         }
 
         match(results) {
@@ -181,7 +180,13 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
 
                     let response = await this.xhRequest('regex-api/' + this.state.lang, request);
 
+                    console.log('response: ', response);
+
                     super.notify('text-input', 'match', JSON.parse(response));
+                }
+                else {
+                    super.notify('text-input', 'update');
+                    super.notify('regex-input', 'update');
                 }
             }
             catch (e) {
