@@ -57,7 +57,7 @@ class RegexAPI {
 
                     _fs.writeFileSync(__dirname + '/input.json', JSON.stringify(request));
 
-                    exec('python3.exe index.py',
+                    exec('python3 index.py',
                         {
                             'env': this.env,
                             'cwd': __dirname
