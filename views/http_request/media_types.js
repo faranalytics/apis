@@ -21,8 +21,6 @@ module.exports = {
 
         'json': function ({rep, mediaType}, ctx) {
 
-            console.log(JSON.parse(rep.toString('utf8')));
-
             return JSON.parse(rep.toString('utf8'));
         },
 

@@ -59,7 +59,7 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
 
         match(results) {
             //  results must be an Array that contains index-match objects.
-
+            console.log(typeof results);
             let indices = results.reduce((acc, cur) => {
 
                 let index = parseInt(cur['index']);
@@ -118,6 +118,10 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
             this.check = document.createElement('span');
 
             this.check.innerHTML = '✓'
+
+            this.check.style.color = 'green';
+            this.check.style.fontWeight = 'bold';
+            this.check.style.fontSize = '1em';
 
             this.lis = document.querySelectorAll('ul.flavor li');
 
@@ -181,7 +185,7 @@ document.querySelector('[src="app.js"]').addEventListener('Entity', function ({ 
                     }
 
                     let response = await this.xhRequest('/regex-api/' + this.state.lang, request);
-
+                    
                     super.notify('text-input', 'match', JSON.parse(response));
                 }
                 else {

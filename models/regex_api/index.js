@@ -15,110 +15,245 @@ const _path = require('path');
 
 const _fs = require('fs');
 
-const { exec, spawn } = require('child_process');
+const { spawn } = require('child_process');
 
-class RegexAPI {
+const net = require('net');
 
-    constructor() {
 
-        this.api = this.node.bind(this);
+class SocketSpawner {
 
-        this.env = {
-            'PATH': process.env.PATH
+    constructor(
+        command,
+        args,
+        options = {
+            env: { 'PATH': process.env.PATH },
+            cwd: __dirname,
+            windowsVerbatimArguments: true
+        },
+        processes = 10,
+        host = 'localhost'
+    ) {
+
+        this.symbol = Symbol();
+
+        this.host = host;
+        this.command = command;
+        this.args = args;
+        this.options = options;
+
+        this.spawns = [];
+
+        this.subprocessListeners = this.subprocessListeners(this);
+
+        for (let i = 0; i < processes; i++) {
+
+            this.addSubprocess(host, command, args, options);
+        }
+
+    }
+
+    addSubprocess(host, command, args, options) {
+
+        const port = Math.floor(Math.random() * 16384 + 49152);
+
+        const subprocess = spawn(command, [...args, '--host ' + host, '--port ' + port.toString()], options);
+
+        subprocess[this.symbol] = {
+            host: host,
+            port: port
+        }
+
+        subprocess.on('exit', this.subprocessListeners.subprocessExit);
+        subprocess.on('error', this.subprocessListeners.subprocessError);
+        subprocess.on('disconnect', this.subprocessListeners.subprocessDisconnect);
+        subprocess.on('close', this.subprocessListeners.subprocessClose);
+
+        this.spawns.unshift(subprocess);
+    }
+
+    subprocessListeners(ctx) {
+
+        return {
+
+            subprocessExit(code, signal) {
+
+                console.error(`Event: exit; code: ${code} signal: ${signal}`);
+
+                ctx.spawns = ctx.spawns.filter((cur) => !Object.is(cur, this));
+
+                ctx.addSubprocess(ctx.host, ctx.command, ctx.args, ctx.options);
+            },
+
+            subprocessError(err) {
+                console.error(`Event: error; err: ${err}`);
+            },
+
+            subprocessDisconnect() {
+                console.log(`Event: disconnect`);
+            },
+
+            subprocessClose(code, signal) {
+                console.log(`Event: close; code: ${code} signal: ${signal}`);
+            }
         }
     }
 
-    async node(request, ctx) {
+    connect(request) {
 
-        //{ regexInput, textInput }
-        // try {
+        return new Promise((r, j) => {
 
-        //     let regex = new RegExp(regexInput, 'g');
+            try {
 
-        //     let matches = [...textInput.matchAll(regex)].map(
+                const subprocess = this.spawns.pop();
 
-        //         x => ({ match: x[0], index: x.index })
-        //     );
+                const socket = net.createConnection({
+                    host: subprocess[this.symbol].host,
+                    port: subprocess[this.symbol].port
+                });
 
-        //     return matches;
-        // }
-        // catch {
+                socket.on('connect', () => { });
 
-        // }
+                socket.on('ready', () => {
+                    console.log('socket ready');
+                    socket.end(request, 'utf8');
+                });
 
-        return await this.python(request);
-    }
+                const data = [];
 
-    async python(request, ctx) {
+                socket.on('data', (chunk) => {
+                    console.log('socket data');
+                    data.push(chunk);
+                });
 
-        try {
+                socket.on('end', () => {
+                    console.log('socket end');
+                });
 
-            let results = await new Promise((r, j) => {
+                socket.on('close', (hadError) => {
+                    console.log('socket close');
+                    if (hadError) {
+                        j(hadError);
+                    }
+                    else {
+                        r(Buffer.concat(data).toString('utf8'));
+                        this.spawns.push(subprocess);
+                    }
+                });
 
-                try {
+                socket.on('error', (err) => {
+                    console.log('socket error');
+                    j(err)
+                });
 
-                    _fs.writeFileSync(__dirname + '/input.json', JSON.stringify(request));
+                // setTimeout(() => {
 
-                    exec('python3 index.py',
-                        {
-                            'env': this.env,
-                            'cwd': __dirname,
-                            'timeout': 2000
-                        },
-                        (error, stdout, stderr) => {
+                //     if (subprocess.exitCode === null) {
 
-                            // console.error(error);
-                            // console.error(stderr);
-                            // console.error(stdout);
+                //         subprocess.kill('SIGKILL');
+                //     }
+                // }, 2000);
+            }
+            catch (e) {
 
-                            try {
-
-                                if (error) {
-
-                                    throw new Error(error);
-                                }
-
-                                let results = JSON.parse(_fs.readFileSync(__dirname + '/output.json'));
-
-                                r(results);
-                            }
-                            catch (e) {
-
-                                j(e)
-                            }
-                        });
-                }
-                catch (e) {
-
-                    j(e)
-                }
-            });
-
-            return results;
-        }
-        catch (e) {
-
-            console.error(e);
-        }
+                console.log(e);
+                j(e);
+            }
+        });
     }
 }
 
-module.exports = RegexAPI;
 
-//{regexInput: "a", textInput: "b", lang: "python"}
-// console.log(_util.inspect(new RegexAPI));
-// console.log((new RegexAPI).api)
+(async function () {
 
-// let regexAPI = new RegexAPI();
+    let socketSpawner = new SocketSpawner('python3', ['subprocess.py']);
 
-// console.log(_util.inspect(
+    setTimeout(async () => {
+        try {
+            let result = await socketSpawner.connect('TEST');
 
-//     regexAPI.node({regexInput: "(?:is|a)", textInput: "This is a string.", lang: "python"}))
+            console.log(result);
 
-// );
+            result = await socketSpawner.connect('ABC');
+            console.log(result);
+        }
+        catch(e) {
+            console.log(e)
+        }
 
-// (async function(){
-//     console.log(await regexAPI.python({regexInput: "(?:a|is)", textInput: "This is a string."}))
-// }())
+    }, 1000)
 
-//console.log(JSON.parse("{\"regexInput\": \"(?:is|a)\", \"textInput\": \"This is a string.\"}"))
+
+})();
+
+    //module.exports = RegexAPI;
+
+    // let subprocess = spawn('python3', ['subprocess.py', 'localhost', '40400'], {'env': {'PATH': process.env.PATH},'cwd': __dirname});
+
+    // subprocess.on('exit', () => {
+    //     console.log('exit')
+    // });
+
+    // subprocess.on('error', () => {
+    //     console.log('error');
+    // });
+
+    // subprocess.on('close', () => {
+    //     console.log('close');
+    // });
+
+    // subprocess.stderr.on('data', (chunk) => {
+    //     console.log(chunk.toString('utf8'));
+    // });
+
+    // (async function () {
+
+    //     // let regexAPI = new RegexAPI();
+
+    //     // let request = { regexInput: "(?:is|a)", textInput: "This is a string." };
+
+    //     // let response = await regexAPI.python(request);
+
+    //     // console.log('response: ', response);
+
+
+    //     // response = await regexAPI.python(request);
+    //     // //let response = await regexAPI.node(request);
+
+    //     // console.log('response: ', response);
+
+    // })();
+
+
+// class ThreadManager {
+
+//     constructor(path, threads, timeout) {
+
+//         this.threads = [];
+
+
+
+//     }
+// }
+
+
+
+// let subprocess = spawn('python3', ['-u', 'subprocess.py'], {
+//     'env': this.env,
+//     'cwd': __dirname,
+// });
+
+
+// subprocess.stdin.write('message', 'utf8', () => {
+//     console.log('flush');
+// });
+
+// subprocess.stdout.on('data', (data) => {
+//     console.log(data.toString('utf8'));
+//     //  message
+// });
+
+// subprocess.stdout.on('close', () => { console.log('close'); });
+
+// subprocess.stdout.on('end', () => { console.log('end'); });
+
+// subprocess.stdout.on('error', () => { console.log('error'); });
