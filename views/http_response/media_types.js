@@ -6,7 +6,7 @@ module.exports = {
 
     '*': {
 
-        '*': function ({ rep, mediaType }, ctx) {
+        '*': function (rep, mediaType, ctx) {
 
             if (ctx.url.pathname.match(/\.js$/)) {
 
@@ -28,12 +28,13 @@ module.exports = {
                 default:
                     return Buffer.from(rep, 'utf8');
             }
+
         }
     },
 
     'text': {
-        
-        'css': function ({ rep, mediaType }, ctx) {
+
+        'css': function (rep, mediaType, ctx) {
 
             switch (mediaType.mediaRange.parameter.charset) {
 
@@ -44,7 +45,7 @@ module.exports = {
             }
         },
 
-        'html': function ({ rep, mediaType }, ctx) {
+        'html': function (rep, mediaType, ctx) {
 
             switch (mediaType.mediaRange.parameter.charset) {
 
@@ -58,10 +59,10 @@ module.exports = {
 
     'application': {
 
-        'json': function ({ rep, mediaType }, ctx) {
+        'json': function (rep, mediaType, ctx) {
 
             return Buffer.from(JSON.stringify(rep, function (key, value) {
-                
+
                 switch (typeof value) {
                     case 'object':
                     case 'string':

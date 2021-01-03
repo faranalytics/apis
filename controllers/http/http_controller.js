@@ -60,23 +60,20 @@ module.exports = class HttpController {
   };
 
   async httpServerRequest(req, res) {
-    //console.log('httpServerRequest');
 
     try {
 
       var uri = ((this.protocol + '://') || '') + (req.headers.host || '') + (req.url || '');
 
-      // All  Internet-based HTTP/1.1 servers MUST respond with a 400 (Bad Request)
-      // status code to any HTTP/1.1 request message which lacks a Host header field.
-      // (https://tools.ietf.org/html/rfc2616#section-14.23)
+      //
       if (typeof req.headers.host == 'undefined') {
-
-        //log.debug(uri);
 
         throw new HTTPResponse(400); // 400 Bad Request
       }
+      // All  Internet-based HTTP/1.1 servers MUST respond with a 400 (Bad Request)
+      // status code to any HTTP/1.1 request message which lacks a Host header field.
+      // (https://tools.ietf.org/html/rfc2616#section-14.23)
 
-      //log.debug('URI: ' + uri);
 
       let url = new _url.URL(uri);
 
@@ -86,6 +83,8 @@ module.exports = class HttpController {
         let data = [];
 
         let dataLength = 0;
+
+        req.on('error', () => reject(new HTTPResponse('400')));
 
         req.on('close', () => reject(new HTTPResponse('400')));
 
@@ -100,19 +99,19 @@ module.exports = class HttpController {
       });
       //  Accumulate the body of the request.
 
-      let requestRep = await this.resolveRequest(req, res, url, uri, rep);
+      let requestRep = this.resolveRequest(req, res, url, uri, rep);
       //  Resolve path of the Content-Type header.
 
-      let modelRep = await this.resolveModel(req, res, url, uri, requestRep);
+      let modelRep = this.resolveModel(req, res, url, uri, requestRep);
       //  Resolve path of the URL path.
 
-      let responseRep = await this.resolveResponse(req, res, url, uri, modelRep);
+      let responseRep = this.resolveResponse(req, res, url, uri, modelRep);
       //  Resolve path of the Accept header.
 
-      let reps = await Promise.all([requestRep, modelRep, responseRep]);
+      let reps = await Promise.all([rep, requestRep, modelRep, responseRep]);
       //  Each of the 3 models are traversed asynchonously.
 
-      res.end(reps[2]);
+      res.end(reps[3]);
       //  Send the response.  
 
     }
@@ -189,13 +188,7 @@ module.exports = class HttpController {
 
     let paths = [mediaType.mediaRange.subtype, mediaType.mediaRange.type].map((x) => x.toLowerCase());
 
-    rep = (async () => ({ rep: await rep, mediaType: mediaType }))();
-    //  This is a special usage of the rep variable of the Context class constructor.
-    //  Normally, the rep is just the object being passed to a function.  
-    //  For requests, the representation is both the data and the mediaType.
-    //  Hence, the Promise created by the anonymous async function will resolve once the rep gets resolved.
-
-    let ctx = new Context('Request', req, res, model, model, paths, rep, url, uri, this);
+    let ctx = new Context('Request', req, res, model, model, paths, url, uri, rep, mediaType);
 
     rep = await ctx.resolve();
     //  This traverses the request model according to the path of the media type.
@@ -229,12 +222,13 @@ module.exports = class HttpController {
 
     let model = this.selectModel(this.router, url, req.method);
 
-    let ctx = new Context('Model', req, res, model, model, paths, rep, url, uri, this);
+    let ctx = new Context('Model', req, res, model, model, paths, url, uri, rep);
 
     rep = await ctx.resolve();
 
+
     if (typeof rep == 'undefined') {
-      
+
       throw new HTTPResponse(404);
     }
 
@@ -261,54 +255,42 @@ module.exports = class HttpController {
 
     let model = this.selectModel(this.resView, url, req.method);
 
-    let media = { rep: rep, mediaType: null }
-
-    rep = (async (media) => {
-
-      media.rep = await media.rep;
-
-      return media;
-    })(media);
-    //  The mediaType changes on each iteration, so a reference is needed outside the Promise - see below.
-
     for (mediaType of mediaTypes) {
 
-      let paths = [mediaType.mediaRange.subtype, mediaType.mediaRange.type].map((x) => x.toLowerCase());
+        let paths = [mediaType.mediaRange.subtype, mediaType.mediaRange.type].map((x) => x.toLowerCase());
 
-      media.mediaType = mediaType;
+        let ctx = new Context('Response', req, res, model, model, paths, url, uri, rep, mediaType);
 
-      let ctx = new Context('Response', req, res, model, model, paths, rep, url, uri, this);
-      // rep must be an object of the form {rep, mediaType}.
+        let resRep = await ctx.resolve();
 
-      let resRep = await ctx.resolve();
+        if (typeof resRep == 'undefined') {
 
-      if (typeof resRep == 'undefined') {
-
-        continue;
-      }
-      else if (resRep instanceof Buffer) {
-        //  The response view must return a buffer.
-        //  The buffer must be encoded in the specified mediaType.
-        //  Because a buffer was returned, it means that the mediaType was found and 
-        //  the Content-Type header can be set with the current mediaType.
-
-        if (!res.hasHeader('Content-Type')) {
-
-          res.setHeader('Content-Type', mediaType.mediaRange.type + '/' + mediaType.mediaRange.subtype);
+          continue;
         }
+        else if (resRep instanceof Buffer) {
 
-        if (!res.hasHeader('Content-Length')) {
+          //  The response view must return a buffer.
+          //  The buffer must be encoded in the specified mediaType.
+          //  Because a buffer was returned, it means that the mediaType was found and 
+          //  the Content-Type header can be set with the current mediaType.
+          if (!res.hasHeader('Content-Type')) {
 
-          res.setHeader('Content-Length', resRep.length);
+            res.setHeader('Content-Type', mediaType.mediaRange.type + '/' + mediaType.mediaRange.subtype);
+          }
+
+          if (!res.hasHeader('Content-Length')) {
+
+            res.setHeader('Content-Length', resRep.length);
+          }
+
+          return resRep;
         }
+        else {
 
-        return resRep;
-      }
-      else {
-        throw new HTTPResponse(406);
-        //  Response views do encoding so they must return either a Buffer (that contains the encoded representation) or, 
-        //  if the view isn't present, undefined.
-      }
+          throw new HTTPResponse(406);
+          //  Response views do encoding so they must return either a Buffer (that contains the encoded representation) or, 
+          //  if the view isn't present, undefined.
+        }
     }
 
     throw new HTTPResponse(406);
@@ -471,7 +453,7 @@ module.exports = class HttpController {
 
 class Context {
 
-  constructor(name, req, res, model, route, paths, arg, url, uri, server) {
+  constructor(name, req, res, model, route, paths, url, uri, ...args) {
 
     this.name = name;
     this.req = req;
@@ -485,12 +467,14 @@ class Context {
     //  This may start out as the model object.
     this.paths = paths;//.map((cur) => cur.toString().toLowerCase());  //  This could be cleaned here.
     //  An array containing the path to the resource - sorted reverse.
-    this.arg = arg;
+    this.args = args;
+    this.args.push(this);
     //  An argument object that may be spread into a function.
     this.url = url;
     this.uri = uri;
-    this.server = server;
     this.path;
+
+    this.negotiate = true;
 
     this.resolve = this.resolve.bind(this);
   }
@@ -510,6 +494,7 @@ class Context {
     switch (this.route instanceof Buffer ? 'buffer' : typeof this.route) {
 
       case 'undefined':
+
         return undefined;
         //  NB:  The meaning of undefined depends on the context.
         //  In the resolveModel function this throws 404, however in resolveResponse
@@ -536,15 +521,11 @@ class Context {
 
         for (let symbol of symbols) {
 
-          this.context = this.route;
+          this.route[symbol](this);
 
-          let route = this.route;
-
-          this.route = this.route[symbol];
-
-          await tryCallAsync(this.resolve);
-
-          this.route = route;
+          if (!this.negotiate) {
+            throw new NoNegotiate();
+          }
         }
 
         if (this.paths.length === 0) {
@@ -572,12 +553,14 @@ class Context {
 
       case 'function':
 
-        let rs = await tryCallAsync(this.route.bind(this.context), (this.paths.length == 0 ? await this.arg : undefined), this);
+        let rs = await tryCallAsync(
+          this.route.bind(this.context), 
+          ...(this.paths.length === 0 ? await Promise.all(this.args) : [this])
+          );
         //  Before calling the function, here we await the function arguments.
 
-        if (rs === null) {
-          //  The semantics are that a resource exists, but it is not known (unknown object), which implies
-          //  that the function is going to handle content negotiation from here onward.
+        if (!this.negotiate) {
+          //  If the callee sets the negotiate property to false, it means that the callee will handle the HTTP request.
           throw new NoNegotiate();
         }
 

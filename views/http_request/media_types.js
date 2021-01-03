@@ -6,20 +6,22 @@ module.exports = {
 
     '*': {
 
-        '*': function ({rep, mediaType}, ctx) {
+        '*': function (rep, mediaType, ctx) {
 
             if (ctx.url.search.match(/[=&]/)) {
 
                 return _querystring.parse(decodeURIComponent(ctx.url.searchParams.toString()), "&", "=", { maxKeys: 0 });
             }
 
-            return decodeURIComponent(ctx.url.search.replace(/^\?/, ''));
+            let result = decodeURIComponent(ctx.url.search.replace(/^\?/, ''));
+
+            return result;
         }
     },
 
     'application': {
 
-        'json': function ({rep, mediaType}, ctx) {
+        'json': function (rep, mediaType, ctx) {
 
             return JSON.parse(rep.toString('utf8'));
         },

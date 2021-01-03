@@ -10,7 +10,7 @@ try {
     global.gc();
 
     let mu = process.memoryUsage();
-    
+
     Object.keys(mu).forEach((k) => { console.log(k, Math.round(mu[k] / 1000 / 1000 * 100) / 100, 'MB') });
 }
 catch (e) {
@@ -19,6 +19,7 @@ catch (e) {
 //
 
 const _util = require('util');
+const _path = require('path');
 
 Object.assign(_util.inspect.defaultOptions, {
     colors: true,
@@ -31,7 +32,7 @@ Object.assign(_util.inspect.defaultOptions, {
 
 try {
 
-    let config = require('./config.js')
+    let config = require('./config.js');
 
     if (!Array.isArray(config.servers))
         throw new Error('config.servers is missing.');
@@ -40,7 +41,7 @@ try {
 
         try {
 
-            let Controller = require(process.cwd() + '/' + config['controllerPath']);
+            let Controller = require(_path.resolve(config['controllerPath']));
 
             let controller = new Controller(config);
 
@@ -50,15 +51,15 @@ try {
         }
         catch (e) {
 
-            console.log('Unable to instantiate server configuration: \n' + _util.inspect(config));
+            console.error('Unable to instantiate server configuration: \n' + _util.inspect(config));
 
-            console.log(e.message);
+            console.error(e.message);
 
-            console.log(e.stack);
+            console.error(e.stack);
         }
     })
 }
 catch (e) {
 
-    console.log(e);
+    console.error(e);
 }

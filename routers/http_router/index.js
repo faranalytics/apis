@@ -2,37 +2,31 @@
 
 const _path = require('path');
 
-const RegexAPI = require(_path.resolve('models/regex_api'));
+const { HANDLER } = require(_path.resolve('symbols'))
 
-const FileWatcher = require(_path.resolve('models/file_watcher'));
-
-let fileWatcher = new FileWatcher('models/regex_api/doc_root');
-
+const FileWatcher = require(_path.resolve('apps/file_watcher'));
 
 const routerModel = {
 
   'GET': {
 
-    [Symbol('HTTPhandler')]: function (rep, ctx) {
+    [HANDLER]: function (ctx) {
 
       if (ctx.url.pathname.match(/^.*\/$/)) {
-        ctx.paths.shift();
-        ctx.paths.unshift('index.html');
+
+        ctx.negotiate = false;
+
+        ctx.res.writeHead(301, { Location: ctx.url.pathname + 'index.html' }).end();
       }
     },
 
-    'regex-api': fileWatcher,
+    'regex-api': new FileWatcher(_path.resolve('apps/regex_api/doc_root'))
 
-    '': 'EMPTY STRING',
-    
-    'index.html': 'index.html'
   },
 
   'POST': {
 
-    'api': 'TEST_API',
-
-    'regex-api': new RegexAPI()
+    'regex-api': require(_path.resolve('apps/regex_api'))
   }
 }
 
